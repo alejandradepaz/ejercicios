@@ -1,36 +1,28 @@
-from machine import Pin
+from machine import Pin, Timer
 import time
-import _thread
 import connection
 
+# Conectar WiFi (solo una vez)
 connection.connect_wifi()
 
-# --- LED automático (parpadea solo) ---
-led_auto = Pin(2, Pin.OUT)
+# Pines
+led_auto = Pin(2, Pin.OUT)     # LED que parpadea automáticamente
+led_boton = Pin(5, Pin.OUT)    # LED controlado por el botón
+boton = Pin(4, Pin.IN, Pin.PULL_UP)  # Botón con resistencia pull-up
 
-# --- LED que depende del botón ---
-led_boton = Pin(5, Pin.OUT)
+# --- PARPADEO AUTOMÁTICO USANDO TIMER ---
+def parpadear(timer):
+    led_auto.value(not led_auto.value())  # Cambia de encendido a apagado cada vez
 
-# --- Botón con pull-up interno ---
-boton = Pin(4, Pin.IN, Pin.PULL_UP)
+# Timer para el LED automático
+timer = Timer(0)
+timer.init(period=500, mode=Timer.PERIODIC, callback=parpadear)
 
-# --- HILO PARA EL PARPADEO AUTOMÁTICO ---
-def parpadeo():
-    while True:
-        led_auto.value(1)
-        time.sleep(0.5)
-        led_auto.value(0)
-        time.sleep(0.5)
-
-_thread.start_new_thread(parpadeo, ())
-
-# --- BUCLE PRINCIPAL (BOTÓN) ---
+# --- BUCLE PRINCIPAL ---
 while True:
-    if boton.value() == 1:
-        print("Boton encendido")# Botón presionado (va a GND)
-        led_boton.value(1)       # Enciende LED
+    if boton.value() == 0:  # LOW significa que el botón está presionado
+        led_boton.value(1)
+        print("Botón presionado")
     else:
-        #print("Boton apagado")
-        led_boton.value(0)       # Apaga LED
-
-    time.sleep(0.01)
+        led_boton.value(0)
+    time.sleep(0.05)  # pequeño retardo para evitar lecturas muy rápidas
