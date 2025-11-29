@@ -1,4 +1,4 @@
-from machine import Pin
+from machine import Pin, Timer
 import time
 import _thread
 import connection
@@ -18,14 +18,13 @@ boton2 = Pin(18, Pin.IN, Pin.PULL_UP)
 prev_boton2 = 1  
 
 # --- HILO PARA EL PARPADEO AUTOMÁTICO ---
-def parpadeo():
-    while True:
-        led_auto.value(1)
-        time.sleep(0.5)
-        led_auto.value(0)
-        time.sleep(0.5)
+def parpadear(timer):
+    led_auto.value(not led_auto.value())  # Cambia de encendido a apagado cada vez
 
-_thread.start_new_thread(parpadeo, ())
+# Timer para el LED automático
+timer = Timer(0)
+timer.init(period=500, mode=Timer.PERIODIC, callback=parpadear)
+
 
 # --- BUCLE PRINCIPAL (BOTÓN) ---
 while True:
